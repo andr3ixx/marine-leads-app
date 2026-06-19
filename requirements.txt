@@ -1,0 +1,12 @@
+# Pinned to 1.49.0: newer Playwright releases expect system libraries that
+# Streamlit Community Cloud's Debian image doesn't have. If you're deploying
+# elsewhere (your own VPS/Docker) you can use a newer pin instead.
+playwright==1.49.0
+streamlit>=1.38
+pandas>=2.2
+beautifulsoup4>=4.12
+lxml>=5.2
+groq>=0.9
+pydantic>=2.0
+python-dotenv>=1.0
+httpx>=0.27
