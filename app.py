@@ -22,8 +22,124 @@ from playwright.async_api import async_playwright
 
 from engine.niches import NICHE_PROFILES, DEFAULT_NICHE
 from engine.pipeline import OUTPUT_FIELDS, run_lead
+from engine import leads_store
 
 st.set_page_config(page_title="Marine Lead Engine", page_icon="⚓", layout="wide")
+
+# ---------------------------------------------------------------- theme toggle
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True
+
+DARK_CSS = """
+<style>
+    :root {
+        color-scheme: dark;
+    }
+    .stApp, [data-testid="stAppViewContainer"] {
+        background-color: #0B1120 !important;
+        color: #E8ECF1 !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #111B2E !important;
+        color: #E8ECF1 !important;
+    }
+    [data-testid="stHeader"] {
+        background-color: #0B1120 !important;
+    }
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown,
+    [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
+    .stSelectbox label, .stTextInput label, .stCheckbox label {
+        color: #E8ECF1 !important;
+    }
+    .stButton > button[kind="primary"], .stDownloadButton > button[kind="primary"] {
+        background-color: #F0C430 !important;
+        color: #0B1120 !important;
+        border: none !important;
+    }
+    .stButton > button[kind="primary"]:hover, .stDownloadButton > button[kind="primary"]:hover {
+        background-color: #D4AB20 !important;
+    }
+    .stButton > button:not([kind="primary"]) {
+        border-color: #1F3A5F !important;
+        color: #E8ECF1 !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #E8ECF1 !important;
+    }
+    .stTabs [aria-selected="true"] {
+        border-bottom-color: #F0C430 !important;
+        color: #F0C430 !important;
+    }
+    .stDataFrame, .stDataEditor {
+        border-color: #1F3A5F !important;
+    }
+    .stDivider {
+        border-color: #1F3A5F !important;
+    }
+    .stMetric {
+        background-color: #111B2E !important;
+        border-radius: 8px;
+        padding: 10px;
+    }
+    a { color: #F0C430 !important; }
+    .stCaption, .stCaption p { color: #8899AA !important; }
+</style>
+"""
+
+LIGHT_CSS = """
+<style>
+    :root {
+        color-scheme: light;
+    }
+    .stApp, [data-testid="stAppViewContainer"] {
+        background-color: #F8F9FC !important;
+        color: #1A1A2E !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #EAECF4 !important;
+        color: #1A1A2E !important;
+    }
+    [data-testid="stHeader"] {
+        background-color: #F8F9FC !important;
+    }
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown,
+    [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
+    .stSelectbox label, .stTextInput label, .stCheckbox label {
+        color: #1A1A2E !important;
+    }
+    .stButton > button[kind="primary"], .stDownloadButton > button[kind="primary"] {
+        background-color: #102A43 !important;
+        color: #F0C430 !important;
+        border: none !important;
+    }
+    .stButton > button[kind="primary"]:hover, .stDownloadButton > button[kind="primary"]:hover {
+        background-color: #1A3A5C !important;
+    }
+    .stButton > button:not([kind="primary"]) {
+        border-color: #102A43 !important;
+        color: #102A43 !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #1A1A2E !important;
+    }
+    .stTabs [aria-selected="true"] {
+        border-bottom-color: #102A43 !important;
+        color: #102A43 !important;
+    }
+    .stMetric {
+        background-color: #EAECF4 !important;
+        border-radius: 8px;
+        padding: 10px;
+    }
+    a { color: #102A43 !important; }
+    .stCaption, .stCaption p { color: #6B7280 !important; }
+</style>
+"""
+
+st.markdown(DARK_CSS if st.session_state.dark_mode else LIGHT_CSS, unsafe_allow_html=True)
+
+# ---------------------------------------------------------------- init store
+leads_store.init()
 
 
 @st.cache_resource
@@ -69,7 +185,7 @@ def get_psi_key() -> str:
 
 
 async def process_batch(leads, niche_key, check_speed, screenshot_dir, groq_key, progress_cb):
-    os.environ["GOOGLE_PSI_API_KEY"] = get_psi_key()  # so engine.speed picks it up
+    os.environ["GOOGLE_PSI_API_KEY"] = get_psi_key()
     groq_client = Groq(api_key=groq_key)
     rows = []
     async with async_playwright() as pw:
@@ -78,6 +194,13 @@ async def process_batch(leads, niche_key, check_speed, screenshot_dir, groq_key,
             for idx, lead in enumerate(leads, start=1):
                 company = str(lead.get("Company Name", "")).strip()
                 website = str(lead.get("Website", "")).strip()
+
+                cached = leads_store.lookup(website)
+                if cached:
+                    progress_cb(idx, len(leads), f"{company} (cached)")
+                    rows.append(cached)
+                    continue
+
                 progress_cb(idx, len(leads), company)
                 row = await run_lead(
                     browser=browser,
@@ -89,6 +212,7 @@ async def process_batch(leads, niche_key, check_speed, screenshot_dir, groq_key,
                     screenshot_dir=screenshot_dir,
                     check_speed=check_speed,
                 )
+                leads_store.upsert(row)
                 rows.append(row)
         finally:
             await browser.close()
@@ -112,6 +236,18 @@ if "screenshot_dir" not in st.session_state:
 # ---------------------------------------------------------------- sidebar
 with st.sidebar:
     st.header("⚓ Setup")
+
+    dark_toggle = st.toggle(
+        "Dark mode",
+        value=st.session_state.dark_mode,
+        key="dark_toggle",
+    )
+    if dark_toggle != st.session_state.dark_mode:
+        st.session_state.dark_mode = dark_toggle
+        st.rerun()
+
+    st.divider()
+
     niche_key = st.selectbox(
         "Niche profile",
         options=list(NICHE_PROFILES.keys()),
@@ -131,6 +267,15 @@ with st.sidebar:
         help="Stored in st.secrets on Streamlit Cloud, or paste it here for a local test run.",
     )
     st.caption("Free key: console.groq.com/keys")
+
+    st.divider()
+    stored_count = leads_store.count()
+    st.caption(f"Lead store: {stored_count} lead(s) saved")
+    if st.button("Clear stored leads", type="secondary"):
+        leads_store.clear()
+        st.session_state.results = []
+        st.rerun()
+
     st.divider()
     st.caption(
         "Processes leads one at a time to stay under Streamlit Community Cloud's "
@@ -140,9 +285,41 @@ with st.sidebar:
 st.title("Marine Outreach Lead Engine")
 st.caption("CSV in → scrape, score, draft outreach → reviewed CSV out.")
 
-# ---------------------------------------------------------------- upload
-uploaded = st.file_uploader("Upload leads CSV (needs 'Company Name' and 'Website' columns)", type="csv")
+# ---------------------------------------------------------------- example CSV download
+EXAMPLE_CSV = "Company Name,Website\nHawks Cay Resort,https://www.hawkscay.com/\nMajesty Fishing,https://www.majestyfishing.com/\nFishEye Sportfishing,https://www.fisheyesportfishing.com/\n"
 
+col_upload, col_example = st.columns([4, 1])
+with col_upload:
+    uploaded = st.file_uploader("Upload leads CSV (needs 'Company Name' and 'Website' columns)", type="csv")
+with col_example:
+    st.download_button(
+        "Download example CSV",
+        data=EXAMPLE_CSV,
+        file_name="raw_leads_example.csv",
+        mime="text/csv",
+    )
+
+# ---------------------------------------------------------------- import CSV into store
+with st.expander("Import previously exported CSV into lead store"):
+    st.caption(
+        "Import a reviewed_leads.csv (or any CSV with the same columns) directly "
+        "into the lead store — no re-scraping needed. Matched by Website; existing "
+        "entries are updated."
+    )
+    import_file = st.file_uploader("Choose CSV to import", type="csv", key="import_csv")
+    if import_file is not None:
+        import_df = pd.read_csv(import_file)
+        if "Website" not in import_df.columns:
+            st.error("CSV must have a 'Website' column to match leads.")
+        else:
+            st.info(f"{len(import_df)} row(s) found in file.")
+            if st.button("Import into store", type="primary", key="do_import"):
+                rows_to_import = import_df.to_dict("records")
+                leads_store.upsert_many(rows_to_import)
+                st.success(f"Imported {len(rows_to_import)} lead(s) into the store.")
+                st.rerun()
+
+# ---------------------------------------------------------------- process leads
 leads_df = None
 if uploaded is not None:
     leads_df = pd.read_csv(uploaded)

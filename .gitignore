@@ -2,3 +2,6 @@ venv/
 screenshots/
 __pycache__/
 *.csv
+leads.db
+leads.db-shm
+leads.db-wal
