@@ -50,7 +50,19 @@ _FONTS = (
 )
 
 _BASE_CSS = """
-*, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
+/* Typography — targeted selectors so Streamlit's Material Symbols icon font is preserved */
+body, .stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stSidebar"],
+.stMarkdown, p, label,
+input, textarea, select,
+td, th, li, a,
+[data-testid="stMetricLabel"],
+.stSelectbox, .stTextInput, .stTextArea,
+.stCheckbox, .stNumberInput, .stCaption,
+.stAlert, .stForm {
+    font-family: 'Inter', sans-serif !important;
+}
 h1, h2, h3, h4, h5, h6, [data-testid="stMetricValue"] {
     font-family: 'Space Grotesk', sans-serif !important;
     font-weight: 600 !important;
@@ -81,21 +93,38 @@ _DARK_COLORS = """
 }
 [data-testid="stSidebar"] { background-color: #101D32 !important; }
 [data-testid="stHeader"] { background-color: #0B1120 !important; }
-h1,h2,h3,h4,h5,h6,p,span,label,.stMarkdown,
+h1,h2,h3,h4,h5,h6,p,label,.stMarkdown,
 [data-testid="stMetricValue"],[data-testid="stMetricLabel"],
 .stSelectbox label,.stTextInput label,.stCheckbox label,
 .stNumberInput label, .stTextArea label {
     color: #E0E6ED !important;
 }
-.stButton>button[kind="primary"],.stDownloadButton>button[kind="primary"] {
-    background-color: #F0C430 !important; color: #0B1120 !important; border:none !important;
-    font-weight:600 !important;
+/* Primary buttons (includes form-submit variant) */
+button[kind="primary"],
+button[kind="primaryFormSubmit"],
+[data-testid="stBaseButton-primary"] button,
+[data-testid="stBaseButton-primaryFormSubmit"] button {
+    background-color: #F0C430 !important; color: #0B1120 !important;
+    border: none !important; font-weight: 600 !important;
 }
-.stButton>button[kind="primary"]:hover,.stDownloadButton>button[kind="primary"]:hover {
-    background-color: #D4AB20 !important;
+button[kind="primary"]:hover,
+button[kind="primaryFormSubmit"]:hover,
+[data-testid="stBaseButton-primary"] button:hover,
+[data-testid="stBaseButton-primaryFormSubmit"] button:hover {
+    background-color: #D4AB20 !important; color: #0B1120 !important;
 }
-.stButton>button:not([kind="primary"]) {
-    border-color: #1F3A5F !important; color: #E0E6ED !important;
+/* Secondary / default buttons */
+button[kind="secondary"],
+[data-testid="stBaseButton-secondary"] button {
+    border: 1px solid #2A4A6F !important; color: #E0E6ED !important;
+    background-color: rgba(15,25,45,0.4) !important;
+}
+button[kind="secondary"]:hover,
+[data-testid="stBaseButton-secondary"] button:hover {
+    border-color: #F0C430 !important; color: #F0C430 !important;
+}
+button:disabled {
+    opacity: 0.5 !important;
 }
 .stTabs [data-baseweb="tab"] { color: #E0E6ED !important; }
 .stTabs [aria-selected="true"] {
@@ -121,21 +150,39 @@ _LIGHT_COLORS = """
 }
 [data-testid="stSidebar"] { background-color: #E8ECF4 !important; }
 [data-testid="stHeader"] { background-color: #F6F8FB !important; }
-h1,h2,h3,h4,h5,h6,p,span,label,.stMarkdown,
+h1,h2,h3,h4,h5,h6,p,label,.stMarkdown,
 [data-testid="stMetricValue"],[data-testid="stMetricLabel"],
 .stSelectbox label,.stTextInput label,.stCheckbox label,
 .stNumberInput label, .stTextArea label {
     color: #1A1A2E !important;
 }
-.stButton>button[kind="primary"],.stDownloadButton>button[kind="primary"] {
-    background-color: #102A43 !important; color: #F0C430 !important; border:none !important;
-    font-weight:600 !important;
+/* Primary buttons (includes form-submit variant) */
+button[kind="primary"],
+button[kind="primaryFormSubmit"],
+[data-testid="stBaseButton-primary"] button,
+[data-testid="stBaseButton-primaryFormSubmit"] button {
+    background-color: #102A43 !important; color: #F0C430 !important;
+    border: none !important; font-weight: 600 !important;
 }
-.stButton>button[kind="primary"]:hover,.stDownloadButton>button[kind="primary"]:hover {
-    background-color: #1A3A5C !important;
+button[kind="primary"]:hover,
+button[kind="primaryFormSubmit"]:hover,
+[data-testid="stBaseButton-primary"] button:hover,
+[data-testid="stBaseButton-primaryFormSubmit"] button:hover {
+    background-color: #1A3A5C !important; color: #F0C430 !important;
 }
-.stButton>button:not([kind="primary"]) {
-    border-color: #102A43 !important; color: #102A43 !important;
+/* Secondary / default buttons */
+button[kind="secondary"],
+[data-testid="stBaseButton-secondary"] button {
+    border: 1px solid #102A43 !important; color: #102A43 !important;
+    background-color: rgba(255,255,255,0.5) !important;
+}
+button[kind="secondary"]:hover,
+[data-testid="stBaseButton-secondary"] button:hover {
+    border-color: #102A43 !important; color: #FFFFFF !important;
+    background-color: #102A43 !important;
+}
+button:disabled {
+    opacity: 0.5 !important;
 }
 .stTabs [data-baseweb="tab"] { color: #1A1A2E !important; }
 .stTabs [aria-selected="true"] {
