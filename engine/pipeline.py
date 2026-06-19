@@ -15,7 +15,7 @@ from groq import Groq
 from playwright.async_api import Browser
 
 from . import scoring, speed as speed_mod, tech_stack
-from .ai_analysis import analyse_lead
+from .ai_analysis import analyse_lead, regenerate_email_draft
 from .niches import NicheProfile, get_niche
 from .scraper import scrape_lead
 from .text_utils import extract_visible_text
@@ -153,3 +153,20 @@ async def run_lead(
         row["Error"] = str(exc)
         row["Lead Status"] = "Manual review"
         return row
+
+
+def regenerate_email(
+    groq_client: Groq,
+    company: str,
+    main_issue: str,
+    outreach_angle: str,
+    recommended_offer: str,
+    niche_key: str,
+    notes: str = "",
+) -> str:
+    """Re-draft just the outreach email without re-scraping."""
+    niche = get_niche(niche_key)
+    return regenerate_email_draft(
+        groq_client, company, main_issue, outreach_angle,
+        recommended_offer, niche, notes,
+    )

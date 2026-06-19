@@ -173,3 +173,43 @@ def analyse_lead(
     if not raw:
         raise ValueError("Groq returned an empty response")
     return LeadAnalysis.model_validate_json(raw)
+
+
+def regenerate_email_draft(
+    client,
+    company: str,
+    main_issue: str,
+    outreach_angle: str,
+    recommended_offer: str,
+    niche: NicheProfile,
+    notes: str = "",
+) -> str:
+    """Re-draft just the outreach email using existing analysis context."""
+    system = (
+        f"You are Peter, an expert sales assistant at a digital marketing agency "
+        f"that helps marine businesses grow their bookings online. "
+        f"{niche.focus_description}\n\n{niche.outreach_voice}\n\n"
+        f"Write a single outreach email (plain text, under 150 words, signed "
+        f"'— Peter'). Open with a specific observation, be warm and "
+        f"conversational, and propose a concrete next step. "
+        f"Respond with ONLY the email text."
+    )
+    user_msg = (
+        f"Company: {company}\n"
+        f"Main issue found: {main_issue}\n"
+        f"Best outreach angle: {outreach_angle}\n"
+        f"Recommended offer: {recommended_offer}\n"
+    )
+    if notes:
+        user_msg += f"Additional notes: {notes}\n"
+    user_msg += "\nWrite a fresh outreach email for this company."
+
+    completion = client.chat.completions.create(
+        model=VISION_MODEL,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user_msg},
+        ],
+        temperature=0.7,
+    )
+    return (completion.choices[0].message.content or "").strip()
