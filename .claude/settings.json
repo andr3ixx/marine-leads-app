@@ -3,7 +3,28 @@
     "allow": [
       "Bash(git push *)",
       "Bash(git config *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git branch *)",
+      "Bash(python -c \"from engine import leads_store; leads_store.init\\(\\); print\\('store OK, count:', leads_store.count\\(\\)\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('app.py syntax OK'\\)\")",
+      "Bash(python3 -c \"from engine import leads_store; leads_store.init\\(\\); print\\('store OK, count:', leads_store.count\\(\\)\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('app.py syntax OK'\\)\")",
+      "Bash(curl -sL \"http://digitaldeckhand.com/wp-content/uploads/2024/09/cropped-The-Digital-Deckhand-Logo-02.png\" -o /Users/andrei/Downloads/marine-leads-app/assets/favicon.png)",
+      "Bash(curl -sL \"http://digitaldeckhand.com/wp-content/uploads/2023/03/The-Digital-Deckhand-Logo-01-cropped.svg\" -o /Users/andrei/Downloads/marine-leads-app/assets/logo.svg)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('app.py OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('engine/leads_store.py'\\).read\\(\\)\\); print\\('leads_store.py OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('engine/ai_analysis.py'\\).read\\(\\)\\); print\\('ai_analysis.py OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('engine/pipeline.py'\\).read\\(\\)\\); print\\('pipeline.py OK'\\)\")",
+      "Bash(python3 -c \"from engine import leads_store; leads_store.init\\(\\); print\\('store init OK, count:', leads_store.count\\(\\)\\); leads_store.insert_manual_lead\\('Test Co', 'https://test.com', 'Fishing Charter', 'test note'\\); print\\('insert OK'\\); r = leads_store.lookup\\('https://test.com'\\); print\\('lookup OK, status:', r['pipeline_status'], 'notes:', r['notes']\\); leads_store.update_fields\\('https://test.com', pipeline_status='Reviewing'\\); r2 = leads_store.lookup\\('https://test.com'\\); print\\('update OK, new status:', r2['pipeline_status']\\); stale = leads_store.load_stale\\(1\\); print\\('stale count:', len\\(stale\\)\\); leads_store.clear\\(\\); print\\('clear OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Bash(pkill -f 'streamlit run')",
+      "Bash(/Users/andrei/Downloads/marine-leads-app/venv/bin/playwright install *)",
+      "Bash(/Users/andrei/Downloads/marine-leads-app/venv/bin/python /tmp/screenshot_test2.py)"
     ]
   }
 }
